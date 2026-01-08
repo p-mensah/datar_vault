@@ -130,3 +130,21 @@ export interface SavedItem {
     rate: number;
     unit?: string;
 }
+
+export enum NotificationType {
+  Overdue = 'Overdue',
+  PaymentReminder = 'Payment Reminder',
+  UpcomingDueDate = 'Upcoming Due Date',
+}
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  documentNumber: string;
+  documentType: DocumentType;
+  clientName: string;
+  amount: number;
+  currency: string;
+  dueDate: string;
+  daysUntilDue: number;
+}

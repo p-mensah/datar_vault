@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { DocumentLedger, InvoiceData, DocumentStatus, RecurringStatus } from '../types';
+import React, { useState } from 'react';
+import { DocumentLedger, InvoiceData, DocumentStatus, RecurringStatus, DocumentType } from '../types';
 import { TrashIcon, RecurringIcon } from './Icons';
 
 interface DocumentLedgerModalProps {
@@ -36,6 +36,12 @@ const formatDate = (dateString: string) => {
   }
 };
 
+const calculateTotal = (data: InvoiceData) => {
+  const subtotal = data.items.reduce((acc, item) => acc + item.quantity * item.rate, 0);
+  const taxAmount = (subtotal * data.taxRate) / 100;
+  return subtotal + taxAmount - data.discount;
+};
+
 const StatusBadge: React.FC<{ status: DocumentStatus | RecurringStatus, isRecurring?: boolean }> = ({ status, isRecurring }) => {
     const baseClasses = "px-2 inline-flex text-xs leading-5 font-semibold rounded-full";
     const statusClasses = {
@@ -69,7 +75,83 @@ export const DocumentLedgerModal: React.FC<DocumentLedgerModalProps> = ({ isOpen
       }
   };
 
-  const ledgerEntries = Object.values(ledger).sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    types: [] as DocumentType[],
+    statuses: [] as DocumentStatus[],
+    issueDateFrom: '',
+    issueDateTo: '',
+    amountMin: '',
+    amountMax: '',
+    currency: '',
+  });
+  const [sortBy, setSortBy] = useState('lastModified-desc');
+  const [showFilters, setShowFilters] = useState(false);
+
+  const ledgerEntries = Object.values(ledger);
+
+  // Filtering logic
+  const filteredEntries = ledgerEntries.filter(entry => {
+    const { data } = entry;
+
+    // Search
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const docNum = data.documentNumber.toLowerCase();
+      const clientName = data.to.isBusiness ? data.to.businessName.toLowerCase() : data.to.name.toLowerCase();
+      const itemDescs = data.items.map(i => i.description.toLowerCase()).join(' ');
+      if (!docNum.includes(query) && !clientName.includes(query) && !itemDescs.includes(query)) return false;
+    }
+
+    // Type
+    if (filters.types.length && !filters.types.includes(data.documentType)) return false;
+
+    // Status
+    if (filters.statuses.length && !filters.statuses.includes(data.status)) return false;
+
+    // Issue Date
+    if (filters.issueDateFrom && new Date(data.issueDate) < new Date(filters.issueDateFrom)) return false;
+    if (filters.issueDateTo && new Date(data.issueDate) > new Date(filters.issueDateTo)) return false;
+
+    // Amount
+    const total = calculateTotal(data);
+    const min = filters.amountMin ? parseFloat(filters.amountMin) : -Infinity;
+    const max = filters.amountMax ? parseFloat(filters.amountMax) : Infinity;
+    if (total < min || total > max) return false;
+
+    // Currency
+    if (filters.currency && data.currency !== filters.currency) return false;
+
+    return true;
+  });
+
+  // Sorting logic
+  const sortedFilteredEntries = filteredEntries.sort((a, b) => {
+    switch (sortBy) {
+      case 'lastModified-asc':
+        return new Date(a.lastModified).getTime() - new Date(b.lastModified).getTime();
+      case 'lastModified-desc':
+        return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
+      case 'issueDate-asc':
+        return new Date(a.data.issueDate).getTime() - new Date(b.data.issueDate).getTime();
+      case 'issueDate-desc':
+        return new Date(b.data.issueDate).getTime() - new Date(a.data.issueDate).getTime();
+      case 'dueDate-asc':
+        return new Date(a.data.dueDate).getTime() - new Date(b.data.dueDate).getTime();
+      case 'dueDate-desc':
+        return new Date(b.data.dueDate).getTime() - new Date(a.data.dueDate).getTime();
+      case 'total-asc':
+        return calculateTotal(a.data) - calculateTotal(b.data);
+      case 'total-desc':
+        return calculateTotal(b.data) - calculateTotal(a.data);
+      case 'client-asc':
+        return a.data.to.name.localeCompare(b.data.to.name);
+      case 'client-desc':
+        return b.data.to.name.localeCompare(a.data.to.name);
+      default:
+        return 0;
+    }
+  });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4 no-print" onClick={onClose}>
@@ -81,7 +163,7 @@ export const DocumentLedgerModal: React.FC<DocumentLedgerModalProps> = ({ isOpen
           </button>
         </div>
         <div className="p-4 overflow-y-auto">
-          {ledgerEntries.length === 0 ? (<p className="text-slate-500 text-center py-8">Your document ledger is empty. Save a document to see it here.</p>) : (
+          {sortedFilteredEntries.length === 0 ? (<p className="text-slate-500 text-center py-8">No documents match your search and filters.</p>) : (
             <div className="border rounded-lg overflow-hidden">
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50">
@@ -94,7 +176,7 @@ export const DocumentLedgerModal: React.FC<DocumentLedgerModalProps> = ({ isOpen
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
-                  {ledgerEntries.map(({ data, isRecurringTemplate }) => {
+                  {sortedFilteredEntries.map(({ data, isRecurringTemplate }) => {
                     if (isRecurringTemplate) {
                         const settings = data.recurringSettings!;
                         return (

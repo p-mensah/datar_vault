@@ -1,20 +1,22 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { InvoiceForm } from './components/InvoiceForm';
+import TabbedInvoiceForm from './components/TabbedInvoiceForm';
 import { InvoicePreview, InvoicePreviewRef } from './components/InvoicePreview';
-import { Header } from './components/Header';
+import { Dashboard } from './components/Dashboard';
+import { DashboardHeader, FormHeader } from './components/Header';
 import { VersionHistoryModal } from './components/VersionHistoryModal';
 import { DocumentLedgerModal } from './components/DocumentLedgerModal';
 import { ClientManagerModal } from './components/ClientManagerModal';
 import { ItemManagerModal } from './components/ItemManagerModal';
-import { AnalyticsModal } from './components/AnalyticsModal';
+import { AnalyticsModal } from './components/AnalyticsModal.tsx';
 import { CloudSyncModal } from './components/CloudSyncModal';
-import { InvoiceData, DocumentType, ContractVersion, DocumentLedger, DocumentStatus, SavedClient, SavedItem, LedgerEntry } from './types';
+import { InvoiceData, DocumentType, ContractVersion, DocumentLedger, DocumentStatus, SavedClient, SavedItem, LedgerEntry, Notification } from './types';
 import { DEFAULT_INVOICE_DATA } from './constants';
 import { generateContractText, refineContractText, generateTermsText } from './services/geminiService';
 import { getNextDocumentNumber, SEQUENCE_STORAGE_KEY } from './services/numberingService';
 import { fetchExchangeRates } from './services/currencyService';
 import { initializeDatabase, syncDataToSupabase, syncDataFromSupabase, getCurrentUser } from './services/supabaseService';
+import { generateNotifications } from './services/notificationService';
 
 const LOCAL_STORAGE_KEY = 'ai-invoice-generator-data';
 const CONTRACT_VERSION_STORAGE_KEY = 'ai-contract-versions';
@@ -46,7 +48,8 @@ const App: React.FC = () => {
   const [isItemManagerOpen, setIsItemManagerOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const [isCloudSyncOpen, setIsCloudSyncOpen] = useState(false);
-  
+  const [currentView, setCurrentView] = useState<'dashboard' | 'form'>('dashboard');
+
   const documentTypeRef = useRef(invoiceData.documentType);
   const previewRef = useRef<InvoicePreviewRef>(null);
 
@@ -268,8 +271,8 @@ const App: React.FC = () => {
     }));
   }, []);
   
-  const handleLoadVersion = (versionData: InvoiceData) => { if (window.confirm('Load this version? Unsaved changes will be lost.')) { setInvoiceData(versionData); setIsVersionModalOpen(false); }};
-  const handleLoadFromLedger = (docData: InvoiceData) => { if (window.confirm(`Load document #${docData.documentNumber}? Unsaved changes will be lost.`)) { setInvoiceData(docData); setIsLedgerOpen(false); }};
+  const handleLoadVersion = (versionData: InvoiceData) => { if (window.confirm('Load this version? Unsaved changes will be lost.')) { setInvoiceData(versionData); setIsVersionModalOpen(false); setCurrentView('form'); }};
+  const handleLoadFromLedger = (docData: InvoiceData) => { if (window.confirm(`Load document #${docData.documentNumber}? Unsaved changes will be lost.`)) { setInvoiceData(docData); setIsLedgerOpen(false); setCurrentView('form'); }};
   const handleDeleteFromLedger = (docNumber: string) => { 
     const entry = ledger[docNumber];
     const confirmMessage = entry?.isRecurringTemplate
@@ -355,36 +358,93 @@ const App: React.FC = () => {
     input.click();
   };
 
+  const getInitialDataForType = (documentType: DocumentType): InvoiceData => {
+    const newNumber = getNextDocumentNumber(documentType);
+    return { ...DEFAULT_INVOICE_DATA, documentType, documentNumber: newNumber };
+  };
+
+  const handleCreateNew = (documentType: DocumentType) => {
+    const newData = getInitialDataForType(documentType);
+    setInvoiceData(newData);
+    setCurrentView('form');
+  };
+
+  const handleLoadFromDashboard = (data: InvoiceData) => {
+    setInvoiceData(data);
+    setCurrentView('form');
+  };
+
+  const handleLoadDocumentByNumber = (documentNumber: string) => {
+    const entry = ledger[documentNumber];
+    if (entry) {
+      handleLoadFromDashboard(entry.data);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
-      <Header
-        onPrint={handlePrint}
-        onSave={handleSave}
-        onReset={handleReset}
-        onEmail={handleEmail}
-        documentType={invoiceData.documentType}
-        isPreviewMode={isPreviewMode}
-        onTogglePreview={() => setIsPreviewMode(prev => !prev)}
-        onShowHistory={() => setIsVersionModalOpen(true)}
-        hasHistory={contractVersions.length > 0}
-        onShowLedger={() => setIsLedgerOpen(true)}
-        onShowAnalytics={() => setIsAnalyticsOpen(true)}
-        onShowCloudSync={() => setIsCloudSyncOpen(true)}
-        onImport={handleImportData}
-        onExport={handleExportData}
-        onManageClients={() => setIsClientManagerOpen(true)}
-        onManageItems={() => setIsItemManagerOpen(true)}
-      />
-      <main className="p-4 md:p-8 lg:p-12">
-        <div className={`max-w-7xl mx-auto ${!isPreviewMode ? 'grid grid-cols-1 lg:grid-cols-2 gap-8' : ''}`}>
-          <div className={isPreviewMode ? 'hidden' : ''}>
-            <InvoiceForm invoiceData={invoiceData} setInvoiceData={setInvoiceData} onGenerateContract={handleGenerateContract} isGenerating={isGenerating} error={error} savedClients={savedClients} setSavedClients={setSavedClients} savedItems={savedItems} onGenerateTerms={handleGenerateTerms} />
-          </div>
-          <div className={isPreviewMode ? 'w-full max-w-4xl mx-auto' : ''}>
-            <InvoicePreview ref={previewRef} invoiceData={invoiceData} onGenerateContract={handleGenerateContract} isGenerating={isGenerating} onRefineContract={handleRefineContract} onGeneratedTextChange={handleGeneratedTextChange} />
-          </div>
-        </div>
-      </main>
+      {currentView === 'dashboard' ? (
+        <>
+          <DashboardHeader
+            onShowCloudSync={() => setIsCloudSyncOpen(true)}
+            onShowAnalytics={() => setIsAnalyticsOpen(true)}
+            onManageClients={() => setIsClientManagerOpen(true)}
+            onManageItems={() => setIsItemManagerOpen(true)}
+            onShowLedger={() => setIsLedgerOpen(true)}
+            notifications={generateNotifications(ledger)}
+            onLoadDocument={handleLoadDocumentByNumber}
+          />
+          <Dashboard
+            ledger={ledger}
+            savedClients={savedClients}
+            savedItems={savedItems}
+            onCreateNew={handleCreateNew}
+            onLoadDocument={handleLoadFromDashboard}
+            onShowLedger={() => setIsLedgerOpen(true)}
+            onShowAnalytics={() => setIsAnalyticsOpen(true)}
+            onShowClients={() => setIsClientManagerOpen(true)}
+            onShowItems={() => setIsItemManagerOpen(true)}
+            onShowCloudSync={() => setIsCloudSyncOpen(true)}
+          />
+        </>
+      ) : (
+        <>
+          <FormHeader
+            documentType={invoiceData.documentType}
+            documentNumber={invoiceData.documentNumber}
+            isPreviewMode={isPreviewMode}
+            onTogglePreview={() => setIsPreviewMode(prev => !prev)}
+            onShowHistory={() => setIsVersionModalOpen(true)}
+            hasHistory={contractVersions.length > 0}
+            onShowLedger={() => setIsLedgerOpen(true)}
+            onSave={handleSave}
+            onEmail={handleEmail}
+            onPrint={handlePrint}
+            onReset={handleReset}
+            onBackToDashboard={() => setCurrentView('dashboard')}
+          />
+          <main className="p-4 md:p-8 lg:p-12">
+            <div className={`max-w-7xl mx-auto ${!isPreviewMode ? 'grid grid-cols-1 lg:grid-cols-2 gap-8' : ''}`}>
+              <div className={isPreviewMode ? 'hidden' : ''}>
+                <TabbedInvoiceForm
+                  invoiceData={invoiceData}
+                  setInvoiceData={setInvoiceData}
+                  onGenerateContract={handleGenerateContract}
+                  isGenerating={isGenerating}
+                  error={error}
+                  savedClients={savedClients}
+                  setSavedClients={setSavedClients}
+                  savedItems={savedItems}
+                  onGenerateTerms={handleGenerateTerms}
+                />
+              </div>
+              <div className={isPreviewMode ? 'w-full max-w-4xl mx-auto' : ''}>
+                <InvoicePreview ref={previewRef} invoiceData={invoiceData} onGenerateContract={handleGenerateContract} isGenerating={isGenerating} onRefineContract={handleRefineContract} onGeneratedTextChange={handleGeneratedTextChange} />
+              </div>
+            </div>
+          </main>
+        </>
+      )}
       <VersionHistoryModal isOpen={isVersionModalOpen} onClose={() => setIsVersionModalOpen(false)} versions={contractVersions} onLoadVersion={handleLoadVersion} />
       <DocumentLedgerModal isOpen={isLedgerOpen} onClose={() => setIsLedgerOpen(false)} ledger={ledger} onLoad={handleLoadFromLedger} onDelete={handleDeleteFromLedger} onStatusChange={handleStatusChange} />
       <ClientManagerModal isOpen={isClientManagerOpen} onClose={() => setIsClientManagerOpen(false)} clients={savedClients} setClients={setSavedClients} />

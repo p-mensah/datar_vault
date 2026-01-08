@@ -23,6 +23,96 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment files
+.env
+.env.local
+.env*.local
+
+# Build and output directories
+dist/
+build/
+output/
+coverage/
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# IDE and editor files
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Compiled files
+*.class
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.obj
+
+# Generated files
+*.gen.ts
+*.generated.ts
+
+# Logs and debug files
+*.log
+*.out
+*.debug
+*.trace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test and coverage files
+coverage/
+*.lcov
+*.lcov.info
+
+# npm debug logs
+npm-debug.log*
+
+# Yarn
+.yarn/*
+!.yarn/rc.yml
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+
+# pnpm
+.pnpm-debug.log*
+
+# Local storage and cache
+*.localstorage
+*.localStorage
+
+# PDF and generated documents
+*.pdf
+*.docx
+*.xlsx
+
+# Backup files
+*.bak
+*.backup
+*.orig
+*.swp
+
+# Temporary files
+*.tmp
+*.temp
+
+# VS Code
+.vscode-test/
+
 *.env.local
 *.env
 *.env.example
