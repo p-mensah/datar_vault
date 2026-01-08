@@ -93,7 +93,7 @@ A comprehensive business management platform for generating and managing AI-powe
    Create a `.env.local` file in the root directory with:
 
    ```env
-   VITE_OPENROUTER_API_KEY=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
+   VITE_OPENROUTER_API_KEY=your_openrouter_api_key_here
    # Supabase credentials (optional, for cloud features)
    VITE_SUPABASE_URL=https://your-project-id.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key
