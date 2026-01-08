@@ -117,6 +117,59 @@ npm-debug.log*
 *.env
 *.env.example
 *.env.local.example
+
+# Supabase files
 *supabase
 *supabaseService.ts
 *supabaseService.tsx
+.supabase/
+*supabase/.branches
+*supabase/.temp
+
+# TypeScript/JavaScript specific
+*.tsbuildinfo
+*.js.map
+*.d.ts.map
+
+# Vite specific
+.vite/
+vite.config.ts.timestamp-*
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE and editor specific
+.vscode/settings.json
+.vscode/launch.json
+*.code-workspace
+
+# Testing
+.nyc_output/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.output/
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Application specific
+*.pdf
+*.docx
+*.xlsx
+*.csv

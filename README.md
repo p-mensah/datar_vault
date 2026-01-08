@@ -2,7 +2,7 @@
 <img width="1200" height="475" alt="Data Vault Banner" src="https://i.ibb.co/ZzVgdXq0/data.png" />
 </div>
 
-# Datar Vault: AI Document Generator
+# Datar Vault: Smart tools to power your business paperwork
 
 A comprehensive business management platform for generating and managing AI-powered documents, including invoices, contracts, statements, and ledgers. Built with modern web technologies and integrated with OpenRouter Xiaomi MiMo-V2-Flash AI for intelligent document creation.
 
@@ -251,6 +251,11 @@ Other files:
 3. Commit your changes: `git commit -am 'Add feature'`
 4. Push to the branch: `git push origin feature-name`
 5. Submit a pull request
+
+## Contact
+
+For questions, suggestions, or support, please contact:
+- **Email**: ing.mensah@outlook.com
 
 ## License
 
