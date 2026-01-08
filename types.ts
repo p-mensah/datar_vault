@@ -120,9 +120,11 @@ export interface ContractVersion {
 }
 
 export interface LedgerEntry {
+  id?: string;
   data: InvoiceData;
   lastModified: string; // ISO string;
   isRecurringTemplate?: boolean;
+  createdAt?: string;
 }
 
 export interface DocumentLedger {
@@ -136,6 +138,8 @@ export interface SavedClient extends PartyDetails {
     notes?: string;
     creditLimit?: number;
     paymentTerms?: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface SavedItem {
@@ -151,6 +155,8 @@ export interface SavedItem {
     quantityOnHand?: number;
     reorderPoint?: number;
     notes?: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export enum NotificationType {

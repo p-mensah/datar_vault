@@ -16,7 +16,6 @@ import { DEFAULT_INVOICE_DATA } from './constants';
 import { generateContractText, refineContractText, generateTermsText } from './services/geminiService';
 import { getNextDocumentNumber, SEQUENCE_STORAGE_KEY } from './services/numberingService';
 import { fetchExchangeRates } from './services/currencyService';
-import { initializeDatabase, syncDataToSupabase, syncDataFromSupabase, getCurrentUser } from './services/supabaseService';
 import { generateNotifications } from './services/notificationService';
 
 const LOCAL_STORAGE_KEY = 'ai-invoice-generator-data';
