@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DocumentLedger, SavedClient, SavedItem } from '../types';
-import { syncDataToSupabase, syncDataFromSupabase, getCurrentUser, signInUser, signUpUser, signOutUser, initializeDatabase } from '../services/supabaseService.ts';
+import { syncDataToSupabase, syncDataFromSupabase, getCurrentUser, signInUser, signUpUser, signOutUser, initializeDatabase } from '../services/supabaseService';
 
 interface CloudSyncModalProps {
   isOpen: boolean;
