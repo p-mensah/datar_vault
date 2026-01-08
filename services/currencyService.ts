@@ -15,29 +15,23 @@ export const fetchExchangeRates = async (baseCurrency: string = 'USD'): Promise<
   }
 
   try {
-    // In a real implementation, this would call a currency API like:
-    // const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`);
-    // const data = await response.json();
-    // exchangeRates = data.rates;
+    // Use a free currency API - exchangerate-api.com (500 requests/month free)
+    const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`);
 
-    // For now, we'll use mock data
-    const mockRates: ExchangeRate = {
-      USD: 1.0,
-      EUR: 0.92,
-      GBP: 0.79,
-      JPY: 151.63,
-      CAD: 1.36,
-      AUD: 1.52,
-      GHS: 12.50
-    };
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
 
-    exchangeRates = mockRates;
+    const data = await response.json();
+    exchangeRates = data.rates;
     lastFetched = Date.now();
+
     return exchangeRates;
   } catch (error) {
-    console.error('Failed to fetch exchange rates:', error);
-    // Return default rates if API fails
-    return {
+    console.warn('Failed to fetch live exchange rates, using fallback:', error);
+
+    // Fallback rates in case API fails
+    const fallbackRates: ExchangeRate = {
       USD: 1.0,
       EUR: 0.92,
       GBP: 0.79,
@@ -46,6 +40,10 @@ export const fetchExchangeRates = async (baseCurrency: string = 'USD'): Promise<
       AUD: 1.52,
       GHS: 12.50
     };
+
+    exchangeRates = fallbackRates;
+    lastFetched = Date.now();
+    return exchangeRates;
   }
 };
 

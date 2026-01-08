@@ -1,15 +1,15 @@
 <div align="center">
-<img width="1200" height="475" alt="Data Vault Banner" src="https://i.ibb.co/JRSDX0hH/data-vault.png" />
+<img width="1200" height="475" alt="Data Vault Banner" src="https://i.ibb.co/ZzVgdXq0/data.png" />
 </div>
 
 # Datar Vault: AI Document Generator
 
-A comprehensive business management platform for generating and managing AI-powered documents, including invoices, contracts, statements, and ledgers. Built with modern web technologies and integrated with Google's Gemini AI for intelligent document creation.
+A comprehensive business management platform for generating and managing AI-powered documents, including invoices, contracts, statements, and ledgers. Built with modern web technologies and integrated with OpenRouter Xiaomi MiMo-V2-Flash AI for intelligent document creation.
 
 ## ✨ Features
 
 ### 🤖 AI-Powered Document Generation
-- **Intelligent Contract Generation**: Use Gemini AI to create customized legal agreements
+- **Intelligent Contract Generation**: Use OpenRouter Xiaomi MiMo-V2-Flash AI to create customized legal agreements
 - **Smart Terms Generation**: AI-powered terms and conditions creation
 - **Document Analysis**: AI suggestions for document optimization
 
@@ -59,7 +59,7 @@ A comprehensive business management platform for generating and managing AI-powe
 
 - **Frontend**: React 19, TypeScript, Tailwind CSS
 - **Build Tool**: Vite
-- **AI Integration**: Google Gemini AI (@google/genai)
+- **AI Integration**: OpenRouter Xiaomi MiMo-V2-Flash AI
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
 - **Charts**: Chart.js, React-Chartjs-2
@@ -70,7 +70,7 @@ A comprehensive business management platform for generating and managing AI-powe
 ## Prerequisites
 
 - Node.js (latest LTS recommended)
-- A valid Google Gemini API key
+- A valid OpenRouter API key (Xiaomi MiMo-V2-Flash model)
 - Supabase account and project (for cloud features)
 
 ## Installation
@@ -93,7 +93,7 @@ A comprehensive business management platform for generating and managing AI-powe
    Create a `.env.local` file in the root directory with:
 
    ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
+   VITE_OPENROUTER_API_KEY=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
    # Supabase credentials (optional, for cloud features)
    VITE_SUPABASE_URL=https://your-project-id.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key

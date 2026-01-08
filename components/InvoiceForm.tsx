@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { InvoiceData, DocumentType, Template, ContractType, SavedClient, SavedItem, RecurringFrequency } from '../types';
-import { DOCUMENT_TYPES, CURRENCIES, TEMPLATES, CONTRACT_TYPES, CONTRACT_TEMPLATES } from '../constants';
+import { InvoiceData, DocumentType, Template, ContractType, SavedClient, SavedItem, RecurringFrequency, InvoiceTemplate } from '../types';
+import { DOCUMENT_TYPES, CURRENCIES, TEMPLATES, CONTRACT_TYPES, CONTRACT_TEMPLATES, INVOICE_TEMPLATES } from '../constants';
 import { PlusIcon, TrashIcon, SparklesIcon, SettingsIcon, UserIcon, FileTextIcon, DollarSignIcon, PaperclipIcon, InfoIcon, CreditCardIcon, UsersIcon, LockClosedIcon, HomeIcon, ClipboardDocumentCheckIcon, SaveIcon, AddressBookIcon, RecurringIcon } from './Icons';
 import { Accordion } from './Accordion';
 
@@ -95,8 +95,21 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceData, setInvoic
         setInvoiceData(prev => ({ ...prev, taxRate: 0 }));
         return;
     }
-    
-    setInvoiceData(prev => ({ ...prev, [name]: isNumeric ? parseFloat(value) || 0 : value }));
+
+    setInvoiceData(prev => {
+        const updatedData = { ...prev, [name]: isNumeric ? parseFloat(value) || 0 : value };
+
+        // if invoice template changes, load the template
+        if (name === 'selectedInvoiceTemplate') {
+            const newType = value as InvoiceTemplate;
+            const template = INVOICE_TEMPLATES[newType];
+            if (template) {
+                Object.assign(updatedData, template);
+            }
+        }
+
+        return updatedData;
+    });
   };
   const handlePartyChange = (party: 'from' | 'to', e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -238,18 +251,26 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceData, setInvoic
                 </select>
             </div>
             { showTemplateSelector && (
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Template</label>
-                    <div className="grid grid-cols-3 gap-2">
-                        {[Template.Modern, Template.Classic, Template.Creative].map(t => (
-                            <button key={t} onClick={() => setInvoiceData(prev => ({ ...prev, template: t }))}>
-                                {t === Template.Modern && <ModernTemplateThumbnail isSelected={invoiceData.template === t} />}
-                                {t === Template.Classic && <ClassicTemplateThumbnail isSelected={invoiceData.template === t} />}
-                                {t === Template.Creative && <CreativeTemplateThumbnail isSelected={invoiceData.template === t} />}
-                            </button>
-                        ))}
+                <>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Visual Template</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {[Template.Modern, Template.Classic, Template.Creative].map(t => (
+                                <button key={t} onClick={() => setInvoiceData(prev => ({ ...prev, template: t }))}>
+                                    {t === Template.Modern && <ModernTemplateThumbnail isSelected={invoiceData.template === t} />}
+                                    {t === Template.Classic && <ClassicTemplateThumbnail isSelected={invoiceData.template === t} />}
+                                    {t === Template.Creative && <CreativeTemplateThumbnail isSelected={invoiceData.template === t} />}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Content Template</label>
+                        <select name="selectedInvoiceTemplate" value={invoiceData.selectedInvoiceTemplate} onChange={handleDataChange} className="w-full p-2 border border-slate-300 rounded-md shadow-sm focus:ring-slate-500 focus:border-slate-500">
+                            {Object.values(InvoiceTemplate).map(template => <option key={template} value={template}>{template}</option>)}
+                        </select>
+                    </div>
+                </>
             )}
         </div>
       </Accordion>

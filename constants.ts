@@ -1,11 +1,13 @@
 
-import { InvoiceData, DocumentType, LineItem, Template, ContractType, ContractDetails, RecurringSettings } from './types';
+import { InvoiceData, DocumentType, LineItem, Template, ContractType, ContractDetails, RecurringSettings, InvoiceTemplate } from './types';
 
 export const DOCUMENT_TYPES: DocumentType[] = [
   DocumentType.Invoice,
   DocumentType.ProformaInvoice,
   DocumentType.Receipt,
   DocumentType.Quotation,
+  DocumentType.PurchaseOrder,
+  DocumentType.CreditNote,
   DocumentType.Statement,
   DocumentType.Contract,
 ];
@@ -31,6 +33,44 @@ export const CURRENCIES = [
   { code: 'AUD', display: 'AUD ($)' },
   { code: 'GHS', display: 'GHS (₵)' },
 ];
+
+export const INVOICE_TEMPLATES: Record<InvoiceTemplate, Omit<InvoiceData, 'documentType' | 'documentNumber' | 'issueDate' | 'dueDate' | 'from' | 'to' | 'contractDetails' | 'template' | 'selectedInvoiceTemplate' | 'paymentDetails' | 'openingBalance' | 'statementPeriodStart' | 'statementPeriodEnd' | 'status' | 'amountPaid' | 'recurringSettings'>> = {
+    [InvoiceTemplate.Freelance]: {
+        items: [
+            { id: '1', description: 'Web Design Services', quantity: 10, rate: 80, unit: 'hours' },
+            { id: '2', description: 'Development Services', quantity: 20, rate: 100, unit: 'hours' }
+        ],
+        notes: 'Thank you for your business. Please remit payment within 30 days.',
+        taxRate: 8,
+        discount: 0,
+        currency: 'GHS',
+        logoUrl: 'https://picsum.photos/seed/logo/150/50',
+        termsAndConditions: 'All services are provided as agreed. Payment due within 30 days of invoice date. Late payments may incur a 5% monthly fee.',
+    },
+    [InvoiceTemplate.ProductSale]: {
+        items: [
+            { id: '1', description: 'Product A', quantity: 2, rate: 100, unit: 'pieces' },
+            { id: '2', description: 'Product B', quantity: 1, rate: 200, unit: 'pieces' }
+        ],
+        notes: 'Thank you for your purchase. Goods will be shipped within 3 business days.',
+        taxRate: 8,
+        discount: 0,
+        currency: 'GHS',
+        logoUrl: 'https://picsum.photos/seed/logo/150/50',
+        termsAndConditions: 'All sales are final. Return policy: 30 days for defective items only.',
+    },
+    [InvoiceTemplate.Consulting]: {
+        items: [
+            { id: '1', description: 'Consulting Services', quantity: 40, rate: 150, unit: 'hours' }
+        ],
+        notes: 'Consulting fee for the agreed scope of work.',
+        taxRate: 8,
+        discount: 0,
+        currency: 'GHS',
+        logoUrl: 'https://picsum.photos/seed/logo/150/50',
+        termsAndConditions: 'Consulting services provided as per agreement. Payment due within 15 days.',
+    }
+};
 
 export const CONTRACT_TEMPLATES: Record<ContractType, Omit<ContractDetails, 'contractType' | 'generatedText'>> = {
     [ContractType.Service]: {
@@ -116,6 +156,7 @@ export const DEFAULT_INVOICE_DATA: InvoiceData = {
   currency: 'GHS',
   logoUrl: 'https://picsum.photos/seed/logo/150/50',
   template: Template.Modern,
+  selectedInvoiceTemplate: InvoiceTemplate.Freelance,
   contractDetails: {
     contractType: ContractType.Service,
     ...CONTRACT_TEMPLATES[ContractType.Service],

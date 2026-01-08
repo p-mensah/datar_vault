@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { DocumentLedger, InvoiceData, DocumentType, DocumentStatus, SavedClient, SavedItem } from '../types';
+import { PlusIcon, LedgerIcon, EyeIcon, UsersIcon, PackageIcon, ExportIcon, HistoryIcon } from './Icons';
 
 interface DashboardProps {
   ledger: DocumentLedger;
@@ -12,6 +13,7 @@ interface DashboardProps {
   onShowClients: () => void;
   onShowItems: () => void;
   onShowCloudSync: () => void;
+  onShowCalendar: () => void;
 }
 
 interface MetricsData {
@@ -32,6 +34,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onShowClients,
   onShowItems,
   onShowCloudSync,
+  onShowCalendar,
 }) => {
   const [selectedDocType, setSelectedDocType] = useState<DocumentType>(DocumentType.Invoice);
 
@@ -104,10 +107,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
       <div className="max-w-7xl mx-auto p-4 md:p-8 lg:p-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">AI Document Generator</h1>
-          <p className="text-slate-600">Create and manage your business documents with AI assistance</p>
-        </div>
 
         {/* Metrics Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -132,9 +131,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Quick Actions Section */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-slate-800 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-              <h3 className="font-medium text-slate-800 mb-2">Create New Document</h3>
+              <div className="flex items-center space-x-2 mb-2">
+                <PlusIcon className="h-5 w-5 text-slate-600" />
+                <h3 className="font-medium text-slate-800">Create New Document</h3>
+              </div>
               <div className="flex space-x-2">
                 <select
                   value={selectedDocType}
@@ -155,28 +157,51 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
 
             <div className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer" onClick={onShowLedger}>
-              <h3 className="font-medium text-slate-800 mb-2">View All Documents</h3>
+              <div className="flex items-center space-x-2 mb-2">
+                <LedgerIcon className="h-5 w-5 text-slate-600" />
+                <h3 className="font-medium text-slate-800">View All Documents</h3>
+              </div>
               <p className="text-sm text-slate-600">Access your document ledger</p>
             </div>
 
             <div className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer" onClick={onShowAnalytics}>
-              <h3 className="font-medium text-slate-800 mb-2">View Analytics</h3>
+              <div className="flex items-center space-x-2 mb-2">
+                <EyeIcon className="h-5 w-5 text-slate-600" />
+                <h3 className="font-medium text-slate-800">View Analytics</h3>
+              </div>
               <p className="text-sm text-slate-600">Detailed business insights</p>
             </div>
 
             <div className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer" onClick={onShowClients}>
-              <h3 className="font-medium text-slate-800 mb-2">Manage Clients</h3>
+              <div className="flex items-center space-x-2 mb-2">
+                <UsersIcon className="h-5 w-5 text-slate-600" />
+                <h3 className="font-medium text-slate-800">Manage Clients</h3>
+              </div>
               <p className="text-sm text-slate-600">Add and edit client information</p>
             </div>
 
             <div className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer" onClick={onShowItems}>
-              <h3 className="font-medium text-slate-800 mb-2">Manage Items</h3>
+              <div className="flex items-center space-x-2 mb-2">
+                <PackageIcon className="h-5 w-5 text-slate-600" />
+                <h3 className="font-medium text-slate-800">Manage Items</h3>
+              </div>
               <p className="text-sm text-slate-600">Manage your product/service catalog</p>
             </div>
 
             <div className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer" onClick={onShowCloudSync}>
-              <h3 className="font-medium text-slate-800 mb-2">Cloud Sync</h3>
+              <div className="flex items-center space-x-2 mb-2">
+                <ExportIcon className="h-5 w-5 text-slate-600" />
+                <h3 className="font-medium text-slate-800">Cloud Sync</h3>
+              </div>
               <p className="text-sm text-slate-600">Sync data across devices</p>
+            </div>
+
+            <div className="bg-white p-4 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer" onClick={onShowCalendar}>
+              <div className="flex items-center space-x-2 mb-2">
+                <HistoryIcon className="h-5 w-5 text-slate-600" />
+                <h3 className="font-medium text-slate-800">View Calendar</h3>
+              </div>
+              <p className="text-sm text-slate-600">See upcoming due dates</p>
             </div>
           </div>
         </div>

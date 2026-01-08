@@ -4,6 +4,8 @@ export enum DocumentType {
   ProformaInvoice = 'Proforma Invoice',
   Receipt = 'Receipt',
   Quotation = 'Quotation',
+  PurchaseOrder = 'Purchase Order',
+  CreditNote = 'Credit Note',
   Statement = 'Statement of Account',
   Contract = 'Contract / Agreement',
 }
@@ -12,6 +14,12 @@ export enum Template {
   Modern = 'Modern',
   Classic = 'Classic',
   Creative = 'Creative',
+}
+
+export enum InvoiceTemplate {
+  Freelance = 'Freelance Services',
+  ProductSale = 'Product Sale',
+  Consulting = 'Consulting',
 }
 
 export enum ContractType {
@@ -95,6 +103,7 @@ export interface InvoiceData {
   logoUrl: string;
   contractDetails: ContractDetails;
   template: Template;
+  selectedInvoiceTemplate: InvoiceTemplate;
   paymentDetails: PaymentDetails;
   termsAndConditions: string;
   openingBalance?: number;
@@ -122,6 +131,11 @@ export interface DocumentLedger {
 
 export interface SavedClient extends PartyDetails {
     id: string;
+    tags?: string[];
+    category?: string;
+    notes?: string;
+    creditLimit?: number;
+    paymentTerms?: string;
 }
 
 export interface SavedItem {
@@ -129,6 +143,14 @@ export interface SavedItem {
     description: string;
     rate: number;
     unit?: string;
+    sku?: string;
+    category?: string;
+    cost?: number;
+    taxable: boolean;
+    trackInventory?: boolean;
+    quantityOnHand?: number;
+    reorderPoint?: number;
+    notes?: string;
 }
 
 export enum NotificationType {

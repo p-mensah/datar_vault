@@ -40,6 +40,7 @@ interface InvoicePreviewProps {
 
 export interface InvoicePreviewRef {
   handleDownloadPdf: () => Promise<void>;
+  handleGeneratePdfBlob: () => Promise<Blob>;
 }
 
 const formatCurrency = (amount: number, currency: string) => {
@@ -244,8 +245,44 @@ export const InvoicePreview = React.forwardRef<InvoicePreviewRef, InvoicePreview
         setIsDownloadingPdf(false);
     }
   };
+
+  const handleGeneratePdfBlob = async (): Promise<Blob> => {
+    const element = document.getElementById('print-area');
+    if (!element) throw new Error('Print area not found');
+
+    element.classList.add('pdf-capture-mode');
+
+    try {
+        const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'pt', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        const imgWidth = pdfWidth;
+        const imgHeight = imgWidth / ratio;
+        let heightLeft = imgHeight;
+        let position = 0;
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+        while (heightLeft > 0) {
+            position = -heightLeft;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
+        }
+        return pdf.output('blob');
+    } catch (error) {
+        console.error("Error generating PDF blob:", error);
+        throw error;
+    } finally {
+        element.classList.remove('pdf-capture-mode');
+    }
+  };
   
-  useImperativeHandle(ref, () => ({ handleDownloadPdf }));
+  useImperativeHandle(ref, () => ({ handleDownloadPdf, handleGeneratePdfBlob }));
 
   const isEditableContract = isContract && contractDetails.generatedText !== 'Please click "Generate Contract" to create the agreement text.';
   const receiptTerms = "Thank you for your payment. Returns are accepted within 30 days of purchase with a valid receipt. Please contact us with any questions.";
@@ -264,7 +301,7 @@ export const InvoicePreview = React.forwardRef<InvoicePreviewRef, InvoicePreview
         {status === 'Paid' && <div className="paid-stamp">Paid</div>}
         <div className={`flex justify-between items-start pb-8 ${template === Template.Classic ? 'header-border' : 'border-b'}`}>
           <div>
-            {logoUrl ? (<img src={logoUrl} alt="Company Logo" className="h-16 mb-4 object-contain" />) : (<div className="mb-4 flex items-center justify-center h-16 w-32 bg-slate-100 rounded text-slate-400"><LogoPlaceholderIcon className="h-8 w-8" /></div>)}
+            {logoUrl ? (<img src={logoUrl} alt="Company Logo" className="h-20 mb-4 object-contain" />) : (<div className="mb-4 flex items-center justify-center h-24 w-48 bg-slate-100 rounded text-slate-400"><LogoPlaceholderIcon className="h-12 w-12" /></div>)}
             <h2 className="text-3xl font-bold text-gray-800 capitalize">{documentTitle}</h2>
             <p className="text-gray-500 mt-1">{getReferenceLabel(documentType)} {invoiceData.documentNumber}</p>
           </div>
@@ -348,7 +385,7 @@ export const InvoicePreview = React.forwardRef<InvoicePreviewRef, InvoicePreview
             </div>
           </>
         )}
-        {(notes || showPaymentDetails || shouldShowTermsBlock) && (<div className="mt-12 pt-6 border-t">{notes && !isContract && (<div className="mb-6"><h4 className="font-semibold text-gray-600 mb-2">Notes</h4><p className="text-gray-500 text-sm">{notes}</p></div>)}{showPaymentDetails && (<div className="mb-6"><h4 className="font-semibold text-gray-600 mb-4">Payment Information</h4><div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 text-sm"><div><h5 className="font-medium text-gray-700 mb-1">Bank Details</h5><div className="text-gray-600 space-y-1"><p><strong>Bank:</strong> {paymentDetails.bankName}, {paymentDetails.branchName}</p><p><strong>Account Name:</strong> {paymentDetails.accountName}</p><p><strong>Account Number:</strong> {paymentDetails.accountNumber}</p>{paymentDetails.sortCode && <p><strong>Sort Code:</strong> {paymentDetails.sortCode}</p>}</div></div>{paymentDetails.momoNetwork && paymentDetails.momoAccountNumber && (<div><h5 className="font-medium text-gray-700 mb-1">Mobile Money (MoMo)</h5><div className="text-gray-600 space-y-1"><p><strong>Network:</strong> {paymentDetails.momoNetwork}</p><p><strong>Name:</strong> {paymentDetails.momoAccountName}</p><p><strong>Number:</strong> {paymentDetails.momoAccountNumber}</p></div><div className="text-xs text-gray-500 mt-2 space-y-1"><p><strong>Reference:</strong> Please use {getReferenceLabel(documentType)} {invoiceData.documentNumber}</p><p><strong>Note:</strong> Please ensure the name matches the Account Name before entering your PIN.</p></div></div>)}</div></div>)}{shouldShowTermsBlock && (<div className="mt-6 pt-6 border-t"><h4 className="font-semibold text-gray-600 mb-2">Terms & Conditions</h4><p className="text-gray-500 text-sm whitespace-pre-wrap">{isReceipt ? receiptTerms : termsAndConditions}</p></div>)}</div>)}
+        {(notes || showPaymentDetails || shouldShowTermsBlock) && (<div className="mt-12 pt-6 border-t">{notes && !isContract && (<div className="mb-6"><h4 className="font-semibold text-gray-600 mb-2">Notes</h4><p className="text-gray-500 text-sm">{notes}</p></div>)}{showPaymentDetails && (<div className="mb-6"><h4 className="font-semibold text-gray-600 mb-4">Payment Information</h4><div className="grid grid-cols-2 gap-x-8 gap-y-6 text-sm"><div><h5 className="font-medium text-gray-700 mb-1">Bank Details</h5><div className="text-gray-600 space-y-1"><p><strong>Bank:</strong> {paymentDetails.bankName}, {paymentDetails.branchName}</p><p><strong>Account Name:</strong> {paymentDetails.accountName}</p><p><strong>Account Number:</strong> {paymentDetails.accountNumber}</p>{paymentDetails.sortCode && <p><strong>Sort Code:</strong> {paymentDetails.sortCode}</p>}</div></div>{paymentDetails.momoNetwork && paymentDetails.momoAccountNumber && (<div><h5 className="font-medium text-gray-700 mb-1">Mobile Money (MoMo)</h5><div className="text-gray-600 space-y-1"><p><strong>Network:</strong> {paymentDetails.momoNetwork}</p><p><strong>Name:</strong> {paymentDetails.momoAccountName}</p><p><strong>Number:</strong> {paymentDetails.momoAccountNumber}</p></div><div className="text-xs text-gray-500 mt-2 space-y-1"><p><strong>Reference:</strong> Please use {getReferenceLabel(documentType)} {invoiceData.documentNumber}</p><p><strong>Note:</strong> Please ensure the name matches the Account Name before entering your PIN.</p></div></div>)}</div></div>)}{shouldShowTermsBlock && (<div className="mt-6 pt-6 border-t"><h4 className="font-semibold text-gray-600 mb-2">Terms & Conditions</h4><p className="text-gray-500 text-sm whitespace-pre-wrap">{isReceipt ? receiptTerms : termsAndConditions}</p></div>)}</div>)}
         <div className="mt-12 text-center text-gray-400 text-xs"><p>Generated with Datar Vault</p></div>
       </div>
     </div>

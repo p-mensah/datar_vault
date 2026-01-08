@@ -1,14 +1,44 @@
 
-import { GoogleGenAI } from "@google/genai";
 import { InvoiceData, ContractType } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
+
+const callOpenRouter = async (prompt: string): Promise<string> => {
+    const response = await fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${API_KEY}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'Datar Vault Invoice Generator'
+        },
+        body: JSON.stringify({
+            model: 'anthropic/claude-3-haiku:beta',
+            messages: [
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: 0.7,
+            max_tokens: 4000
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
+};
 
 export const generateContractText = async (data: InvoiceData): Promise<string> => {
     const { from, to, contractDetails } = data;
     const providerName = from.isBusiness ? from.businessName : from.name;
     const clientName = to.isBusiness ? to.businessName : to.name;
-    
+
     let specificInstructions = '';
     switch (contractDetails.contractType) {
         case ContractType.NDA:
@@ -73,25 +103,21 @@ export const generateContractText = async (data: InvoiceData): Promise<string> =
       4.  Adhere strictly to the contract-specific instructions provided below to ensure the document is tailored and robust.
       5.  Include a standard "Confidentiality" clause. For an NDA, this section is the most critical part of the document and must be highly detailed as per the specific instructions. For other contract types, it should be a standard, appropriate clause.
       6.  Conclude with a statement confirming this document represents the entire agreement between the parties.
-      
+
       ${specificInstructions}
 
       Generate the full, populated contract text now.
     `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-preview',
-            contents: prompt,
-        });
-
-        if (response.text) {
-          return response.text;
+        const text = await callOpenRouter(prompt);
+        if (text) {
+          return text;
         } else {
-          throw new Error("No text returned from Gemini API");
+          throw new Error("No text returned from OpenRouter API");
         }
     } catch (error) {
-        console.error("Error calling Gemini API:", error);
+        console.error("Error calling OpenRouter API:", error);
         throw new Error("Failed to generate contract from AI service.");
     }
 };
@@ -119,18 +145,14 @@ export const refineContractText = async (currentText: string, refinementRequest:
     `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-preview',
-            contents: prompt,
-        });
-
-        if (response.text) {
-          return response.text;
+        const text = await callOpenRouter(prompt);
+        if (text) {
+          return text;
         } else {
-          throw new Error("No text returned from Gemini API during refinement.");
+          throw new Error("No text returned from OpenRouter API during refinement.");
         }
     } catch (error) {
-        console.error("Error calling Gemini API for refinement:", error);
+        console.error("Error calling OpenRouter API for refinement:", error);
         throw new Error("Failed to refine contract from AI service.");
     }
 };
@@ -146,17 +168,14 @@ export const generateTermsText = async (prompt: string): Promise<string> => {
       Generate the clause now.
     `;
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-preview',
-            contents: fullPrompt,
-        });
-        if (response.text) {
-          return response.text;
+        const text = await callOpenRouter(fullPrompt);
+        if (text) {
+          return text;
         } else {
-          throw new Error("No text returned from Gemini API for T&C.");
+          throw new Error("No text returned from OpenRouter API for T&C.");
         }
     } catch (error) {
-        console.error("Error calling Gemini API for T&C:", error);
+        console.error("Error calling OpenRouter API for T&C:", error);
         throw new Error("Failed to generate T&C from AI service.");
     }
 };

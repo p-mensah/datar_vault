@@ -12,7 +12,7 @@ interface ItemManagerModalProps {
 }
 
 const emptyItem: Omit<SavedItem, 'id'> = {
-  description: '', rate: 0, unit: ''
+  description: '', rate: 0, unit: '', taxable: true
 };
 
 const formatCurrency = (amount: number, currency: string) => {

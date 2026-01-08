@@ -26,8 +26,8 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-800">Datar Vault</h1>
-              <p className="text-sm text-slate-600">AI Document Generator</p>
+              <h1 className="text-xl font-bold text-slate-800">Datar Vault</h1>
+              <p className="text-sm text-slate-600">Smart tools to power your business paperwork.</p>
             </div>
           </div>
 

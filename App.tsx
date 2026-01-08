@@ -10,6 +10,7 @@ import { ClientManagerModal } from './components/ClientManagerModal';
 import { ItemManagerModal } from './components/ItemManagerModal';
 import { AnalyticsModal } from './components/AnalyticsModal.tsx';
 import { CloudSyncModal } from './components/CloudSyncModal';
+import { CalendarModal } from './components/CalendarModal';
 import { InvoiceData, DocumentType, ContractVersion, DocumentLedger, DocumentStatus, SavedClient, SavedItem, LedgerEntry, Notification } from './types';
 import { DEFAULT_INVOICE_DATA } from './constants';
 import { generateContractText, refineContractText, generateTermsText } from './services/geminiService';
@@ -48,6 +49,7 @@ const App: React.FC = () => {
   const [isItemManagerOpen, setIsItemManagerOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
   const [isCloudSyncOpen, setIsCloudSyncOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [currentView, setCurrentView] = useState<'dashboard' | 'form'>('dashboard');
 
   const documentTypeRef = useRef(invoiceData.documentType);
@@ -405,6 +407,7 @@ const App: React.FC = () => {
             onShowClients={() => setIsClientManagerOpen(true)}
             onShowItems={() => setIsItemManagerOpen(true)}
             onShowCloudSync={() => setIsCloudSyncOpen(true)}
+            onShowCalendar={() => setIsCalendarOpen(true)}
           />
         </>
       ) : (
@@ -462,6 +465,11 @@ const App: React.FC = () => {
           setSavedItems(syncedData.items);
           alert('Data synced from cloud successfully!');
         }}
+      />
+      <CalendarModal
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        ledger={ledger}
       />
     </div>
   );
